@@ -1,0 +1,12 @@
+[package]
+name = "macs-fan-control-core"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Hardware-independent fan control transaction and short lease engine"
+license = "MIT"
+
+[dependencies]
+
+[lints.rust]
+unsafe_code = "forbid"

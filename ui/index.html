@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark"><title>Macs Fan</title>
+<link rel="stylesheet" href="styles.css"><script type="module" src="app.js"></script>
+</head>
+<body>
+<div id="demo-banner" hidden>演示数据</div>
+<main class="utility">
+<header class="toolbar"><span id="model">本机</span><span id="connection" role="status"><i id="status-dot"></i><span id="status-label">连接中</span></span></header>
+<section class="fan-section" aria-labelledby="fan-heading">
+<div class="section-bar"><h2 id="fan-heading">风扇</h2><span id="fan-count" class="secondary"></span></div>
+<div class="fan-scroll"><table class="fans"><thead><tr><th scope="col">名称</th><th scope="col">当前 RPM</th><th scope="col">范围 RPM</th><th scope="col">模式</th></tr></thead><tbody id="fan-rows"><tr><td colspan="4" class="empty">等待采样</td></tr></tbody></table></div>
+</section>
+<section class="sensor-section" aria-labelledby="sensor-heading">
+<div class="section-bar sensor-toolbar"><h2 id="sensor-heading">温度 <span id="sensor-count" class="secondary"></span></h2><button class="icon-button info" id="sensor-info" aria-label="查看温度数据说明" title="数据说明">ⓘ</button><label><span class="sr-only">传感器范围</span><select id="sensor-scope" aria-label="传感器范围"><option value="overview">概览</option><option value="components">部件</option><option value="all">全部</option></select></label><label class="search"><span class="sr-only">搜索传感器</span><input id="sensor-search" type="search" placeholder="搜索" autocomplete="off"></label><label><span class="sr-only">温度排序</span><select id="sensor-sort" aria-label="温度排序"><option value="name">默认</option><option value="temperature">温度 ↓</option></select></label></div>
+<div class="sensor-scroll"><table class="sensors"><thead><tr><th scope="col">传感器</th><th id="temperature-heading" scope="col">温度 °C</th></tr></thead><tbody id="sensor-rows"><tr><td colspan="2" class="empty">等待采样</td></tr></tbody></table></div>
+</section>
+<footer><button id="status-detail" class="status-link" title="打开诊断">只读</button><span id="updated" class="secondary"></span><span class="spacer"></span><button id="open-curve">预设</button><button id="open-settings" class="icon-button" aria-label="显示设置" title="显示设置">⚙</button><button id="open-diagnostics">诊断</button><button id="refresh" class="icon-button" title="刷新" aria-label="刷新">↻</button></footer>
+</main>
+<dialog id="curve-dialog" aria-labelledby="curve-title"><div class="dialog-head"><h2 id="curve-title">预设</h2><button class="icon-button close" data-close aria-label="关闭">×</button></div>
+<div class="preset-row"><label class="grow"><span class="sr-only">已保存预设</span><select id="preset-list" aria-label="已保存预设"></select></label><button id="preset-new">新建</button></div>
+<form id="preset-form" novalidate><fieldset id="preset-fields" disabled>
+<div class="preset-row"><label class="grow"><span class="sr-only">预设名称</span><input id="preset-name" placeholder="预设名称" aria-label="预设名称" maxlength="128" autocomplete="off"></label><span id="preset-dirty" class="secondary"></span></div>
+<div class="preset-row"><label class="grow"><span class="sr-only">风扇</span><select id="preset-fan" aria-label="风扇"></select></label><label class="grow"><span class="sr-only">模式</span><select id="preset-mode" aria-label="模式"><option value="automatic">自动</option><option value="fixed">固定转速</option><option value="sensor">温度控制</option></select></label></div>
+<div id="fixed-fields" hidden><label class="inline-field">转速 RPM<input id="fixed-rpm" type="number" min="0" max="30000" step="1"></label></div>
+<div id="sensor-fields" hidden><label class="sensor-choice">传感器<select id="preset-sensor" aria-label="控制传感器"></select></label><div class="curve-fields"><label>最低 RPM<input id="minRpm" type="number" min="0" max="30000" step="1"></label><label>最高 RPM<input id="maxRpm" type="number" min="1" max="30000" step="1"></label><label>起调 °C<input id="lowerTemp" type="number" min="0" max="126" step="0.1"></label><label>满速 °C<input id="upperTemp" type="number" min="1" max="127" step="0.1"></label></div><div id="curve-chart" role="img" aria-label="预览曲线"></div><div class="curve-sample"><label>预览 <output id="curve-temp-label">65.0 °C</output><input id="curve-temperature" type="range" min="0" max="127" value="65"></label><strong><span id="curve-rpm">—</span><small> RPM</small></strong></div></div>
+</fieldset><p id="preset-warning" class="compact-warning" role="status"></p><p id="curve-error" role="status"></p><div class="dialog-actions"><button id="preset-delete" type="button">删除</button><span class="spacer"></span><button id="preset-reset" type="button">还原</button><button id="preset-save" type="submit">保存</button><button id="preset-apply" type="button" disabled>应用</button><button id="preset-stop" type="button" disabled>停止</button></div></form><p id="control-status" class="compact-warning" role="status"></p><div class="preference-status"><span id="preset-status" role="status"></span><button id="preferences-retry" type="button" hidden>重新读取</button></div></dialog>
+<dialog id="settings-dialog" aria-labelledby="settings-title"><div class="dialog-head"><h2 id="settings-title">显示设置</h2><button class="icon-button close" data-close aria-label="关闭">×</button></div><div class="settings-fields"><label>温度单位<select id="display-unit"><option value="celsius">°C</option><option value="fahrenheit">°F</option></select></label><label>精度<select id="display-precision"><option value="decimal">一位小数</option><option value="whole">整数</option></select></label></div><p id="settings-status" class="compact-warning" role="status"></p><button id="settings-retry" hidden>重新读取</button></dialog>
+<dialog id="discard-dialog" aria-labelledby="discard-title"><div class="dialog-head"><h2 id="discard-title">放弃未保存的修改？</h2></div><div class="dialog-actions"><button id="discard-cancel">继续编辑</button><button id="discard-confirm">放弃修改</button></div></dialog>
+<dialog id="delete-dialog" aria-labelledby="delete-title"><div class="dialog-head"><h2 id="delete-title">删除此预设？</h2></div><div class="dialog-actions"><button id="delete-cancel">取消</button><button id="delete-confirm">删除</button></div></dialog>
+<dialog id="diagnostics-dialog" aria-labelledby="diagnostics-title"><div class="dialog-head"><h2 id="diagnostics-title">诊断</h2><button class="icon-button close" data-close aria-label="关闭">×</button></div><p id="error-detail" class="diagnostic-message"></p><pre id="json-output" tabindex="0" aria-label="诊断 JSON"></pre><div class="dialog-actions"><span id="copy-status" role="status"></span><button id="copy-json">复制 JSON</button></div></dialog>
+<dialog id="info-dialog" aria-labelledby="info-title"><div class="dialog-head"><h2 id="info-title">温度来源</h2><button class="icon-button close" data-close aria-label="关闭">×</button></div><p class="info-copy">名称按机型及来源资料匹配；未知键保留原名。低值不补算，成员不完整时不生成均值。悬停可查来源，原始键在“全部”中。</p></dialog>
+</body></html>

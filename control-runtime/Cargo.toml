@@ -1,0 +1,13 @@
+[package]
+name = "macs-fan-control-runtime"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "MIT"
+description = "Trusted host fan policy coordinator over the capability and lease engine"
+
+[dependencies]
+macs-fan-control-core = { path = "../control-core" }
+
+[lints.rust]
+unsafe_code = "forbid"
